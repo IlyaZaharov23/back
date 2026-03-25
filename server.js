@@ -1,8 +1,9 @@
 const express = require("express");
 const app = express();
 const User = require("./user_schema");
+require('dotenv').config()
 
-const PORT = 3000;
+const PORT = process.env.DEV_PORT;
 const USERS_PATH = "/api/users";
 const USERS_PATH_WITH_ID = USERS_PATH + "/:id";
 
