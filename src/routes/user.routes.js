@@ -14,7 +14,7 @@ userRouter
   .route('/users/:id')
   .all(UserMiddleware.withIdMiddleware)
   .get(UserController.getUser)
-  .put(UserController.changeUser)
+  .put(UserController.updateUser)
   .patch(UserController.changeUserPassword)
   .delete(UserController.deleteUser);
 

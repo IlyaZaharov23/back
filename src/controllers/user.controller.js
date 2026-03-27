@@ -1,56 +1,91 @@
-const User = require("../models/user.schema");
-
-const users = [];
+const UserService = require("../services/user.service");
+const {
+  ERROR_ENTITIES,
+  CONTROOLLER_ERRORS,
+  SERVICE_ERRORS,
+} = require("../constants/errors");
 
 class UserController {
-  static getAllUsers(req, res) {
-    res.send(JSON.stringify(users));
-  }
-  static addNewUser(req, res) {
-    const newUser = new User(req.body);
-    users.push(newUser);
-    res.send(JSON.stringify(newUser));
-  }
-  static getUser(req, res) {
-    const { id } = req.params;
-    const user = users.find((user) => user.id === id);
-    if (!user) {
-      return res.send(JSON.stringify("User not found."));
+  static async getAllUsers(req, res) {
+    try {
+      const users = await UserService.getUsersFromDB();
+      res.send(users);
+    } catch (error) {
+      res.status(500).send(error.message);
     }
-    res.send(JSON.stringify(user));
   }
-  static changeUser(req, res) {
-    const data = req.body;
-    const { id } = req.params;
-    const targetUserIndex = users.findIndex((user) => user.id === id);
-    if (targetUserIndex === -1) {
-      return res.send(JSON.stringify("User not found."));
+  static async addNewUser(req, res) {
+    try {
+      const newUsers = await UserService.createUser(req.body);
+      res.status(201).send(JSON.stringify(newUsers));
+    } catch (error) {
+      res.status(500).send(error.message);
     }
-    const updatedUser = new User({ id, ...data });
-    users[targetUserIndex] = updatedUser;
-    res.send(JSON.stringify(updatedUser));
   }
-  static changeUserPassword(req, res) {
-    const { id } = req.params;
-    const { password } = req.body;
-    const targetUserIndex = users.findIndex((user) => user.id === id);
-    if (targetUserIndex === -1) {
-      return res.send(JSON.stringify("User not found."));
+  static async getUser(req, res) {
+    try {
+      const { id } = req.params;
+      const user = await UserService.getUserById(id);
+      res.send(JSON.stringify(user));
+    } catch (error) {
+      if (error.message === SERVICE_ERRORS.NOT_FOUND) {
+        return res
+          .status(404)
+          .send(CONTROOLLER_ERRORS.NOT_FOUND(ERROR_ENTITIES.USER));
+      }
+      res.status(500).send(JSON.stringify(error.message));
     }
-    if (!password) {
-      return res.send(JSON.stringify("Password is required."));
-    }
-    users[targetUserIndex].password = password;
-    res.send(JSON.stringify(id));
   }
-  static deleteUser(req, res) {
-    const { id } = req.params;
-    const targetUserIndex = users.findIndex((user) => user.id === id);
-    if (targetUserIndex === -1) {
-      return res.send(JSON.stringify("User not found."));
+  static async updateUser(req, res) {
+    try {
+      const data = req.body;
+      const { id } = req.params;
+      const updatedUser = await UserService.updateUserById(data, id);
+      res.send(JSON.stringify(updatedUser));
+    } catch (error) {
+      if (error.message === SERVICE_ERRORS.NOT_FOUND) {
+        return res
+          .status(404)
+          .send(CONTROOLLER_ERRORS.NOT_FOUND(ERROR_ENTITIES.USER));
+      }
+      res.status(500).send(JSON.stringify(error.message));
     }
-    users.splice(targetUserIndex, 1);
-    res.send(JSON.stringify(id));
+  }
+  static async changeUserPassword(req, res) {
+    try {
+      const { id } = req.params;
+      const { password } = req.body;
+      const updatedUser = await UserService.updateUserPasswordById(
+        password,
+        id
+      );
+      res.send(JSON.stringify(updatedUser));
+    } catch (error) {
+      if (error.message === SERVICE_ERRORS.NOT_FOUND) {
+        return res
+          .status(404)
+          .send(CONTROOLLER_ERRORS.NOT_FOUND(ERROR_ENTITIES.USER));
+      } else if (error.message === SERVICE_ERRORS.REQUIRED) {
+        return res
+          .status(400)
+          .send(CONTROOLLER_ERRORS.REQUIRED(ERROR_ENTITIES.PASSWORD));
+      }
+      res.status(500).send(JSON.stringify(error.message));
+    }
+  }
+  static async deleteUser(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = await UserService.removeUserById(id);
+      res.send(JSON.stringify(userId));
+    } catch (error) {
+      if (error.message === SERVICE_ERRORS.NOT_FOUND) {
+        return res
+          .status(404)
+          .send(CONTROOLLER_ERRORS.NOT_FOUND(ERROR_ENTITIES.USER));
+      }
+      res.status(500).send(JSON.stringify(error.message));
+    }
   }
 }
 
