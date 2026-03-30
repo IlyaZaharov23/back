@@ -1,3 +1,4 @@
+const { v4: uuid } = require("uuid");
 const FileHelpers = require("../helpers/FileHelpers");
 const ENTITIES = require("../constants/entities");
 const PATHS = require("../constants/paths");
@@ -36,9 +37,10 @@ class UserService {
         PATHS.DB,
         ENTITIES.USERS
       );
-      users.push(data);
+      const newUser = { ...data, id: uuid() };
+      users.push(newUser);
       await FileHelpers.updateEntityFromDB(users, PATHS.DB, ENTITIES.USERS);
-      return data;
+      return newUser;
     } catch (error) {
       throw error;
     }

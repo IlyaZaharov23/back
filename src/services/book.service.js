@@ -1,3 +1,4 @@
+const { v4: uuid } = require("uuid");
 const FileHelpers = require("../helpers/FileHelpers");
 const ENTITIES = require("../constants/entities");
 const PATHS = require("../constants/paths");
@@ -33,9 +34,10 @@ class BookService {
         PATHS.DB,
         ENTITIES.BOOKS
       );
-      books.push(data);
+      const newBook = { ...data, id: uuid() };
+      books.push(newBook);
       await FileHelpers.updateEntityFromDB(books, PATHS.DB, ENTITIES.BOOKS);
-      return data;
+      return newBook;
     } catch (error) {
       throw error;
     }
@@ -71,7 +73,7 @@ class BookService {
       }
       books.splice(targetBookIndex, 1);
       await FileHelpers.updateEntityFromDB(books, PATHS.DB, ENTITIES.BOOKS);
-      return targetBook.id;
+      return id;
     } catch (error) {
       throw error;
     }

@@ -1,4 +1,4 @@
-class MathUtils {
+class MathUtiles {
   static sum(a, b) {
     return a + b;
   }
@@ -13,4 +13,4 @@ class MathUtils {
   }
 }
 
-module.exports = MathUtils;
+module.exports = MathUtiles;
